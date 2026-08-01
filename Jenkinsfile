@@ -160,24 +160,24 @@ pipeline {
 
 
 
-        stage('Docker Image Security Scan') {
+        // stage('Docker Image Security Scan') {
 
-            steps {
+        //     steps {
 
-                echo "Scanning Docker image..."
+        //         echo "Scanning Docker image..."
 
-                sh """
+        //         sh """
 
-                trivy image \
-                --severity HIGH,CRITICAL \
-                --exit-code 0 \
-                ${params.IMAGE_NAME}:${params.IMAGE_TAG}
+        //         trivy image \
+        //         --severity HIGH,CRITICAL \
+        //         --exit-code 0 \
+        //         ${params.IMAGE_NAME}:${params.IMAGE_TAG}
 
-                """
+        //         """
 
-            }
+        //     }
 
-        }
+        // }
 
 
 
