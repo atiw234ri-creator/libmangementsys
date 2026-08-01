@@ -1,57 +1,71 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "library-management"
+        CONTAINER_NAME = "library-management-app"
+
+        MYSQL_HOST = "mysql"
+        MYSQL_USER = "root"
+        MYSQL_PASSWORD = "root123"
+        MYSQL_DATABASE = "lms"
+
+        NETWORK = "library-network"
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Installing dependencies...'
-                // Add your command here
-                // Example:
-                // sh 'npm install'
-                // sh 'pip install -r requirements.txt'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Build') {
+        stage('Remove Old Container') {
             steps {
-                echo 'Building project...'
-                // Example:
-                // sh 'npm run build'
-                // sh 'mvn clean package'
+                sh '''
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+                '''
             }
         }
 
-        stage('Test') {
+        stage('Run Container') {
             steps {
-                echo 'Running tests...'
-                // Example:
-                // sh 'npm test'
-                // sh 'pytest'
+                sh '''
+                docker run -d \
+                  --name $CONTAINER_NAME \
+                  --network $NETWORK \
+                  -p 5000:5000 \
+                  -e MYSQL_HOST=$MYSQL_HOST \
+                  -e MYSQL_USER=$MYSQL_USER \
+                  -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
+                  -e MYSQL_DATABASE=$MYSQL_DATABASE \
+                  $IMAGE_NAME
+                '''
             }
         }
 
-        stage('Deploy') {
+        stage('Verify') {
             steps {
-                echo 'Deploying application...'
+                sh 'docker ps'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo "Deployment Successful"
         }
 
         failure {
-            echo 'Pipeline failed!'
+            echo "Pipeline Failed"
         }
     }
 }
